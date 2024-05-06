@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
         List<User> users = get().stream().map(userMapper::toEntity).collect(Collectors.toList());
         for (User userFromStorage : users) {
             if (user.getEmail().equals(userFromStorage.getEmail())) {
-                throw new UserHasAlreadyExist("Пользователь с email="+ user.getEmail() +" уже существует");
+                throw new UserHasAlreadyExist("Пользователь с email=" + user.getEmail() + " уже существует");
             }
         }
         return userStorage.add(user);
