@@ -2,8 +2,8 @@ package ru.practicum.shareit.item.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.exception.ItemNotFound;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 
@@ -57,10 +57,10 @@ public class ItemInMemoryStorage implements ItemStorage {
     public ItemDto update(int userId, int itemId, Item item) {
         Item updatedItem = items.get(itemId);
         if (updatedItem == null) {
-            throw new ItemNotFound("Вещь с id=" + itemId + " не найдена в списке всех вещей");
+            throw new NotFoundException("Item: Вещь с id=" + itemId + " не найдена в списке всех вещей");
         }
         if (!(updatedItem.getOwner() == userId)) {
-            throw new ItemNotFound("Пользователь с id=" + userId + " не является владельцем вещи с id=" + itemId);
+            throw new NotFoundException("Item: Пользователь с id=" + userId + " не является владельцем вещи с id=" + itemId);
         }
         updatedItem.setName(item.getName() == null ? updatedItem.getName() : item.getName());
         updatedItem.setDescription(item.getDescription() == null ? updatedItem.getDescription() : item.getDescription());

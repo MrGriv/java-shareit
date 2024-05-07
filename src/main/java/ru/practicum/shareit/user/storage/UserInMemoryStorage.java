@@ -2,9 +2,9 @@ package ru.practicum.shareit.user.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.exception.UserHasAlreadyExist;
-import ru.practicum.shareit.user.exception.UserNotFound;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
@@ -46,7 +46,7 @@ public class UserInMemoryStorage implements UserStorage {
     public UserDto update(int userId, User user) {
         User updatedUser = users.get(userId);
         if (updatedUser == null) {
-            throw new UserNotFound("Пользователь с id=" + userId + " не найден");
+            throw new NotFoundException("User: Пользователь с id=" + userId + " не найден");
         }
         user.setId(userId);
         updatedUser.setName(user.getName() == null ? updatedUser.getName() : user.getName());

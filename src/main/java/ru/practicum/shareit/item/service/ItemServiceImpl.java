@@ -2,12 +2,11 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.exception.ItemNotFound;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemStorage;
-import ru.practicum.shareit.user.exception.UserNotFound;
 import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto add(int userId, ItemDto itemDto) {
         userStorage.getById(userId)
-                .orElseThrow(() -> new UserNotFound("Пользователь с id=" + userId + " не найден"));;
+                .orElseThrow(() -> new NotFoundException("User: Пользователь с id=" + userId + " не найден"));;
         Item item = mapper.toEntity(itemDto);
         return itemStorage.add(userId, item);
     }
@@ -31,7 +30,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto getById(int itemId) {
         return itemStorage.getById(itemId)
-                .orElseThrow(() -> new ItemNotFound("Вещь с id=" + itemId + " не найдена в списке всех вещей"));
+                .orElseThrow(() -> new NotFoundException("Item: Вещь с id=" + itemId + " не найдена в списке всех вещей"));
     }
 
     @Override
@@ -51,7 +50,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto update(int userId, int itemId, ItemDto itemDto) {
         userStorage.getById(userId)
-                .orElseThrow(() -> new UserNotFound("Пользователь с id=" + userId + " не найден"));;
+                .orElseThrow(() -> new NotFoundException("User: Пользователь с id=" + userId + " не найден"));;
         Item item = mapper.toEntity(itemDto);
         return itemStorage.update(userId, itemId, item);
     }

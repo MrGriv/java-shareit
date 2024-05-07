@@ -2,9 +2,9 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.exception.UserHasAlreadyExist;
-import ru.practicum.shareit.user.exception.UserNotFound;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserStorage;
@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getById(int userId) {
         return userStorage.getById(userId)
-                .orElseThrow(() -> new UserNotFound("Пользователь с id=" + userId + " не найден"));
+                .orElseThrow(() -> new NotFoundException("User: Пользователь с id=" + userId + " не найден"));
     }
 
     @Override
