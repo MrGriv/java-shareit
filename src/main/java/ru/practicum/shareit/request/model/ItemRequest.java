@@ -1,4 +1,4 @@
-package ru.practicum.shareit.request.dto;
+package ru.practicum.shareit.request.model;
 
 import lombok.Builder;
 import lombok.Data;
@@ -8,8 +8,8 @@ import java.util.Date;
 
 @Data
 @Builder(toBuilder = true)
-public class ItemRequestDto {
-    private Integer id;
+public class ItemRequest {
+    private int id;
     private String description;
     private User requestor;
     private Date created;
