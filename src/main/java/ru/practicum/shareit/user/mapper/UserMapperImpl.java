@@ -8,19 +8,11 @@ import ru.practicum.shareit.user.model.User;
 public class UserMapperImpl implements UserMapper {
     @Override
     public User toEntity(UserDto userDto) {
-        return User.builder()
-                .id(userDto.getId())
-                .name(userDto.getName())
-                .email(userDto.getEmail())
-                .build();
+        return new User(userDto.getId(), userDto.getName(), userDto.getEmail());
     }
 
     @Override
     public UserDto toDto(User user) {
-        return UserDto.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .build();
+        return new UserDto(user.getId(), user.getName(), user.getEmail());
     }
 }

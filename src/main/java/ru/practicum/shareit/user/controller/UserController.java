@@ -31,7 +31,7 @@ public class UserController {
     }
 
     @PatchMapping(ApiPathConstants.BY_ID_PATH)
-    public UserDto update(@RequestBody UserDto userDto, @PathVariable int id) {
+    public UserDto update(@RequestBody UserDto userDto, @PathVariable long id) {
         return userService.update(id, userDto);
     }
 
