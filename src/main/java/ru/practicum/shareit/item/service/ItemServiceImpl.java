@@ -83,21 +83,21 @@ public class ItemServiceImpl implements ItemService {
 
     private ItemDto addBookingsAndComments(Item item, Long userId) {
         ItemDto itemDto = addComments(item);
-        List<Booking> ItemFutureBooking = bookingStorage.findItemFutureBooking(
+        List<Booking> itemFutureBooking = bookingStorage.findItemFutureBooking(
                 userId,
                 LocalDateTime.now(),
                 item.getId(),
                 BookingStatus.REJECTED);
-        List<Booking> ItemPastBooking = bookingStorage.findItemPastBooking(
+        List<Booking> itemPastBooking = bookingStorage.findItemPastBooking(
                 userId,
                 LocalDateTime.now(),
                 item.getId(),
                 BookingStatus.REJECTED);
-        if (!ItemFutureBooking.isEmpty()) {
-            itemDto.setNextBooking(bookingMapper.toItemBooking(ItemFutureBooking.get(0)));
+        if (!itemFutureBooking.isEmpty()) {
+            itemDto.setNextBooking(bookingMapper.toItemBooking(itemFutureBooking.get(0)));
         }
-        if (!ItemPastBooking.isEmpty()) {
-            itemDto.setLastBooking(bookingMapper.toItemBooking(ItemPastBooking.get(0)));
+        if (!itemPastBooking.isEmpty()) {
+            itemDto.setLastBooking(bookingMapper.toItemBooking(itemPastBooking.get(0)));
         }
         return itemDto;
     }

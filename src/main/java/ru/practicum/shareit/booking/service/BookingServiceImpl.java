@@ -113,8 +113,9 @@ public class BookingServiceImpl implements BookingService {
                     .map(mapper::toDtoOut)
                     .collect(Collectors.toList());
         } else if (state.equals(SearchState.CURRENT.name())) {
-            return bookingStorage.findAllByBookerAndStartLessThanEqualAndEndGreaterThanEqualOrderByStartDesc
-                            (booker, LocalDateTime.now(), LocalDateTime.now()).stream()
+            return bookingStorage.findAllByBookerAndStartLessThanEqualAndEndGreaterThanEqualOrderByStartDesc(booker,
+                            LocalDateTime.now(),
+                            LocalDateTime.now()).stream()
                     .map(mapper::toDtoOut)
                     .collect(Collectors.toList());
         } else if (state.equals(SearchState.WAITING.name())) {
@@ -153,8 +154,9 @@ public class BookingServiceImpl implements BookingService {
                     .map(mapper::toDtoOut)
                     .collect(Collectors.toList());
         } else if (state.equals(SearchState.CURRENT.name())) {
-            return bookingStorage.findAllOwnerCurrentBookings
-                            (owner.getId(), LocalDateTime.now(), LocalDateTime.now()).stream()
+            return bookingStorage.findAllOwnerCurrentBookings(owner.getId(),
+                            LocalDateTime.now(),
+                            LocalDateTime.now()).stream()
                     .map(mapper::toDtoOut)
                     .collect(Collectors.toList());
         } else if (state.equals(SearchState.WAITING.name())) {
