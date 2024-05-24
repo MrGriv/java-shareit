@@ -1,16 +1,15 @@
 package ru.practicum.shareit.item.comment.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Data
 @Entity
+@Getter
+@Setter
 @Table(name = "comments")
 @NoArgsConstructor
 @AllArgsConstructor
