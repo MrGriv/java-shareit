@@ -1,15 +1,22 @@
 package ru.practicum.shareit.item.dto;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import ru.practicum.shareit.booking.dto.ItemBooking;
+import ru.practicum.shareit.item.comment.dto.CommentDto;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
-@Data
-@Builder(toBuilder = true)
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ItemDto {
-    private int id;
+    private Long id;
     @NotNull
     @NotEmpty
     private String name;
@@ -18,5 +25,7 @@ public class ItemDto {
     private String description;
     @NotNull
     private Boolean available;
-    private Integer request;
+    private ItemBooking lastBooking;
+    private ItemBooking nextBooking;
+    private List<CommentDto> comments;
 }
