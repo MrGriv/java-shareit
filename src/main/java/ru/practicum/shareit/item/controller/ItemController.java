@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.comment.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -9,8 +10,11 @@ import ru.practicum.shareit.util.ApiPathConstants;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
@@ -28,13 +32,17 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDto> getAllUserItems(@NotNull @RequestHeader("X-Sharer-User-Id") long userId) {
-        return itemService.getAllUserItems(userId);
+    public List<ItemDto> getAllUserItems(@NotNull @RequestHeader("X-Sharer-User-Id") long userId,
+                                         @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                         @Positive @RequestParam(defaultValue = "20") Integer size) {
+        return itemService.getAllUserItems(userId, from, size);
     }
 
     @GetMapping(ApiPathConstants.SEARCH_ITEMS_PATH)
-    public List<ItemDto> searchItemsByNameOrDescription(@RequestParam String text) {
-        return itemService.searchItemsByNameOrDescription(text);
+    public List<ItemDto> searchItemsByNameOrDescription(@RequestParam String text,
+                                                        @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                                        @Positive @RequestParam(defaultValue = "20") Integer size) {
+        return itemService.searchItemsByNameOrDescription(text, from, size);
     }
 
     @PatchMapping(ApiPathConstants.BY_ID_PATH)
