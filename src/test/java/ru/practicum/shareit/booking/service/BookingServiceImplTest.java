@@ -9,12 +9,15 @@ import ru.practicum.shareit.booking.dto.BookingDtoOut;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.exception.BadRequestException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
+import javax.validation.ValidationException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +25,8 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Transactional
 @SpringBootTest(
@@ -76,6 +81,108 @@ class BookingServiceImplTest {
         assertThat(bookingDtoOut.getBooker().getId(),
                 equalTo(userQuery.setParameter("name", user.getName()).getSingleResult().getId()));
         assertThat(bookingDtoOut.getStatus(), equalTo(BookingStatus.WAITING));
+    }
+
+    @Test
+    void addThrowOwnerException() {
+        User owner = new User(null, "Ivan", "iv@mail.ru");
+        User user = new User(null, "Eva", "eva@mail.ru");
+
+        em.persist(owner);
+        em.persist(user);
+        em.flush();
+
+        TypedQuery<User> userQuery = em.createQuery("select u from User as u where u.name = :name", User.class);
+
+        Item item = new Item(null, "черенок", "отличный черенок", true,
+                userQuery.setParameter("name", owner.getName()).getSingleResult(),
+                null);
+
+        em.persist(item);
+        em.flush();
+
+        TypedQuery<Item> itemQuery = em.createQuery("select i from Item as i where i.name = :name", Item.class);
+
+        BookingDtoIn bookingDtoIn = new BookingDtoIn(null,
+                LocalDateTime.now().plusDays(1L),
+                LocalDateTime.now().plusDays(2L),
+                itemQuery.setParameter("name", item.getName()).getSingleResult().getId(),
+                null, null);
+
+        NotFoundException exception = assertThrows(NotFoundException.class, () ->
+                bookingService.add(
+                        userQuery.setParameter("name", owner.getName()).getSingleResult().getId(),
+                        bookingDtoIn));
+
+        assertEquals("Booking: Владелец не может бронировать свою вещь", exception.getMessage());
+    }
+
+    @Test
+    void addThrowUnavailableException() {
+        User owner = new User(null, "Ivan", "iv@mail.ru");
+        User user = new User(null, "Eva", "eva@mail.ru");
+
+        em.persist(owner);
+        em.persist(user);
+        em.flush();
+
+        TypedQuery<User> userQuery = em.createQuery("select u from User as u where u.name = :name", User.class);
+
+        Item item = new Item(null, "черенок", "отличный черенок", false,
+                userQuery.setParameter("name", owner.getName()).getSingleResult(),
+                null);
+
+        em.persist(item);
+        em.flush();
+
+        TypedQuery<Item> itemQuery = em.createQuery("select i from Item as i where i.name = :name", Item.class);
+
+        BookingDtoIn bookingDtoIn = new BookingDtoIn(null,
+                LocalDateTime.now().plusDays(1L),
+                LocalDateTime.now().plusDays(2L),
+                itemQuery.setParameter("name", item.getName()).getSingleResult().getId(),
+                null, null);
+
+        ValidationException exception = assertThrows(ValidationException.class, () ->
+                bookingService.add(
+                        userQuery.setParameter("name", user.getName()).getSingleResult().getId(),
+                        bookingDtoIn));
+
+        assertEquals("Item: Вещь недоступна для бронирования", exception.getMessage());
+    }
+
+    @Test
+    void addThrowSameDateException() {
+        User owner = new User(null, "Ivan", "iv@mail.ru");
+        User user = new User(null, "Eva", "eva@mail.ru");
+
+        em.persist(owner);
+        em.persist(user);
+        em.flush();
+
+        TypedQuery<User> userQuery = em.createQuery("select u from User as u where u.name = :name", User.class);
+
+        Item item = new Item(null, "черенок", "отличный черенок", true,
+                userQuery.setParameter("name", owner.getName()).getSingleResult(),
+                null);
+
+        em.persist(item);
+        em.flush();
+
+        TypedQuery<Item> itemQuery = em.createQuery("select i from Item as i where i.name = :name", Item.class);
+
+        BookingDtoIn bookingDtoIn = new BookingDtoIn(null,
+                LocalDateTime.now().plusDays(1L),
+                LocalDateTime.now().plusDays(1L),
+                itemQuery.setParameter("name", item.getName()).getSingleResult().getId(),
+                null, null);
+
+        ValidationException exception = assertThrows(ValidationException.class, () ->
+                bookingService.add(
+                        userQuery.setParameter("name", user.getName()).getSingleResult().getId(),
+                        bookingDtoIn));
+
+        assertEquals("Booking: Даты не могут совпадать", exception.getMessage());
     }
 
     @Test
@@ -183,6 +290,52 @@ class BookingServiceImplTest {
         assertThat(bookingDtoOut.getBooker().getId(),
                 equalTo(booker.getId()));
         assertThat(bookingDtoOut.getStatus(), equalTo(BookingStatus.REJECTED));
+    }
+
+    @Test
+    void changeBookingStatusAgain() {
+        User owner = new User(null, "Ivan", "iv@mail.ru");
+        User user = new User(null, "Eva", "eva@mail.ru");
+
+        em.persist(owner);
+        em.persist(user);
+        em.flush();
+
+        TypedQuery<User> userQuery = em.createQuery("select u from User as u where u.name = :name", User.class);
+
+        User ownerDb = userQuery.setParameter("name", owner.getName()).getSingleResult();
+
+        Item item = new Item(null, "черенок", "отличный черенок", true,
+                ownerDb,
+                null);
+
+        em.persist(item);
+        em.flush();
+
+        TypedQuery<Item> itemQuery = em.createQuery("select i from Item as i where i.name = :name", Item.class);
+
+        Item itemDb = itemQuery.setParameter("name", item.getName()).getSingleResult();
+        User booker = userQuery.setParameter("name", user.getName()).getSingleResult();
+
+        Booking booking = new Booking(null,
+                LocalDateTime.now().plusDays(1L),
+                LocalDateTime.now().plusDays(2L),
+                itemDb,
+                booker,
+                BookingStatus.APPROVED);
+
+        em.persist(booking);
+        em.flush();
+
+        TypedQuery<Booking> bookingQuery = em.createQuery("select b from Booking as b where b.item = :item",
+                Booking.class);
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () ->
+                bookingService.changeBookingStatus(ownerDb.getId(),
+                        bookingQuery.setParameter("item", itemDb).getSingleResult().getId(),
+                        false));
+
+        assertEquals("Booking: Нельзя повторно менять статус", exception.getMessage());
     }
 
     @Test
