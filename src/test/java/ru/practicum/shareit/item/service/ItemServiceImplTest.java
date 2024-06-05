@@ -97,6 +97,61 @@ class ItemServiceImplTest {
     }
 
     @Test
+    void getByIdOwner() {
+        User owner = new User(null, "Ivan", "iv@mail.ru");
+        User user = new User(null, "Eva", "eva@mail.ru");
+
+        em.persist(owner);
+        em.persist(user);
+        em.flush();
+
+        TypedQuery<User> userQuery = em.createQuery("select u from User as u where u.name = :name", User.class);
+
+        User ownerDb = userQuery.setParameter("name", owner.getName()).getSingleResult();
+
+        Item item = new Item(null, "черенок", "отличный черенок", true,
+                ownerDb,
+                null);
+
+        em.persist(item);
+        em.flush();
+
+        TypedQuery<Item> itemQuery = em.createQuery("select i from Item as i where i.name = :name", Item.class);
+
+        Item itemDb = itemQuery.setParameter("name", item.getName()).getSingleResult();
+        User booker = userQuery.setParameter("name", user.getName()).getSingleResult();
+
+        Booking booking = new Booking(null,
+                LocalDateTime.now().minusDays(2L),
+                LocalDateTime.now().minusDays(1L),
+                itemDb,
+                booker,
+                BookingStatus.APPROVED);
+
+        Booking booking1 = new Booking(null,
+                LocalDateTime.now().plusDays(1L),
+                LocalDateTime.now().plusDays(2L),
+                itemDb,
+                booker,
+                BookingStatus.APPROVED);
+
+        em.persist(booking);
+        em.persist(booking1);
+        em.flush();
+        ItemDto itemDto = itemService.getById(
+                itemQuery.setParameter("name", item.getName()).getSingleResult().getId(),
+                userQuery.setParameter("name", owner.getName()).getSingleResult().getId());
+
+        assertThat(itemDto, notNullValue());
+        assertThat(itemDto.getId(), notNullValue());
+        assertThat(itemDto.getName(), equalTo(item.getName()));
+        assertThat(itemDto.getDescription(), equalTo(item.getDescription()));
+        assertThat(itemDto.getAvailable(), equalTo(item.getAvailable()));
+        assertThat(itemDto.getLastBooking().getItem().getId(), equalTo(itemDb.getId()));
+        assertThat(itemDto.getNextBooking().getItem().getId(), equalTo(itemDb.getId()));
+    }
+
+    @Test
     void getAllUserItems() {
         User user = new User(null, "Ivan", "iv@mail.ru");
         em.persist(user);
