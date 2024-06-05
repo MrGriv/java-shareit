@@ -172,8 +172,8 @@ class BookingServiceImplTest {
         TypedQuery<Item> itemQuery = em.createQuery("select i from Item as i where i.name = :name", Item.class);
 
         BookingDtoIn bookingDtoIn = new BookingDtoIn(null,
-                LocalDateTime.now().plusDays(1L),
-                LocalDateTime.now().plusDays(1L),
+                LocalDateTime.of(2200, 10, 20, 20, 20),
+                LocalDateTime.of(2200, 10, 20, 20, 20),
                 itemQuery.setParameter("name", item.getName()).getSingleResult().getId(),
                 null, null);
 
