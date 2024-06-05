@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.item.comment.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
@@ -25,6 +26,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Transactional
 @SpringBootTest(
@@ -294,5 +297,50 @@ class ItemServiceImplTest {
         assertThat(comment.getText(), equalTo(commentDto.getText()));
         assertThat(comment.getAuthorName(), equalTo(commentDto.getAuthorName()));
         assertThat(comment.getCreated(), notNullValue());
+    }
+
+    @Test
+    void badRequestException() {
+        User user = new User(null, "Ivan", "iv@mail.ru");
+        User booker = new User(null, "Eva", "eva@mail.ru");
+
+        em.persist(user);
+        em.persist(booker);
+        em.flush();
+
+        TypedQuery<User> userQuery = em.createQuery("select u from User as u where u.name = :name", User.class);
+
+        Item item = new Item(null,
+                "rubanok",
+                "cool",
+                true,
+                userQuery.setParameter("name", user.getName()).getSingleResult(),
+                null);
+        em.persist(item);
+        em.flush();
+
+        TypedQuery<Item> itemQuery = em.createQuery("select i from Item as i where i.name = :name", Item.class);
+        TypedQuery<User> bookerQuery = em.createQuery("select u from User as u where u.name = :name", User.class);
+
+        Booking booking = new Booking(null,
+                LocalDateTime.now().minusDays(1L),
+                LocalDateTime.now().plusDays(1L),
+                itemQuery.setParameter("name", item.getName()).getSingleResult(),
+                bookerQuery.setParameter("name", booker.getName()).getSingleResult(),
+                BookingStatus.APPROVED);
+
+        em.persist(booking);
+        em.flush();
+
+        CommentDto commentDto = new CommentDto(null,"good", "Eva", null);
+
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () ->
+                itemService.add(bookerQuery.setParameter("name", user.getName()).getSingleResult().getId(),
+                        itemQuery.setParameter("name", item.getName()).getSingleResult().getId(),
+                        commentDto));
+
+        assertEquals("Comment: Пользователь не может добавить комментарий к вещи," +
+                " у которой он не был владельцем", exception.getMessage());
     }
 }

@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.practicum.shareit.exception.BadRequestException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
@@ -20,6 +22,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Transactional
 @SpringBootTest(
@@ -122,5 +126,14 @@ class UserServiceImplTest {
 
         List<UserDto> targetUsers = service.get();
         assertThat(targetUsers, hasSize(0));
+    }
+
+    @Test
+    void notFoundException() {
+        NotFoundException exception = assertThrows(NotFoundException.class, () ->
+                service.getById(100L));
+
+        assertEquals("User: Пользователь с id=100 не найден", exception.getMessage());
+
     }
 }
