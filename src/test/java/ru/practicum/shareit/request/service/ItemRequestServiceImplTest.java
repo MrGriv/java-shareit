@@ -156,7 +156,7 @@ class ItemRequestServiceImplTest {
 
         assertThat(targetItemRequests, hasSize(itemRequests.size()));
         for (ItemRequestDto sourceItemRequest : itemRequests) {
-            assertThat(targetItemRequests, hasItem( allOf(
+            assertThat(targetItemRequests, hasItem(allOf(
                     hasProperty("id", notNullValue()),
                     hasProperty("description", equalTo(sourceItemRequest.getDescription())),
                     hasProperty("created", equalTo(sourceItemRequest.getCreated())),

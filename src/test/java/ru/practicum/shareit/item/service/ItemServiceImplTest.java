@@ -130,7 +130,7 @@ class ItemServiceImplTest {
 
         assertThat(targetItems, hasSize(items.size()));
         for (ItemDto sourceItem : items) {
-            assertThat(targetItems, hasItem( allOf(
+            assertThat(targetItems, hasItem(allOf(
                     hasProperty("id", notNullValue()),
                     hasProperty("name", equalTo(sourceItem.getName())),
                     hasProperty("description", equalTo(sourceItem.getDescription())),
@@ -172,7 +172,7 @@ class ItemServiceImplTest {
 
         assertThat(targetItems, hasSize(items.size()));
         for (ItemDto sourceItem : items) {
-            assertThat(targetItems, hasItem( allOf(
+            assertThat(targetItems, hasItem(allOf(
                     hasProperty("id", notNullValue()),
                     hasProperty("name", equalTo(sourceItem.getName())),
                     hasProperty("description", equalTo(sourceItem.getDescription())),
