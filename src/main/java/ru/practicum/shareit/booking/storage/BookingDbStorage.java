@@ -19,9 +19,12 @@ public interface BookingDbStorage extends JpaRepository<Booking, Long> {
 
     Page<Booking> findAllByBookerAndEndLessThanOrderByStartDesc(User booker, LocalDateTime date, Pageable page);
 
-    Page<Booking> findAllByBookerAndStartLessThanEqualAndEndGreaterThanEqualOrderByStartDesc(User booker,
-                                                                             LocalDateTime start,
-                                                                             LocalDateTime end, Pageable page);
+    @Query("SELECT b " +
+            "FROM Booking AS b " +
+            "JOIN b.booker AS u " +
+            "WHERE u.id = ?1 AND b.start <= ?2 AND b.end >= ?3 " +
+            "ORDER BY b.start DESC ")
+    Page<Booking> findAllCurrentUserBookings(Long bookerId, LocalDateTime start, LocalDateTime end, Pageable page);
 
     Page<Booking> findAllByBookerAndStatusOrderByStartDesc(User booker, BookingStatus status, Pageable page);
 

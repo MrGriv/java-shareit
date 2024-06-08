@@ -18,5 +18,5 @@ public interface ItemDbStorage extends JpaRepository<Item, Long> {
             " or upper(i.description) like upper(concat('%', ?1, '%')) and i.available = true")
     Page<Item> search(String text, Pageable pageable);
 
-    List<ItemShort> findAllByRequestId(long requestId);
+    List<ItemShort> findAllByRequestIdIn(List<Long> requestIds);
 }

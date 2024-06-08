@@ -15,9 +15,8 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserDbStorage;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -68,11 +67,23 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     private List<ItemRequestDto> getItemRequestDtoList(List<ItemRequest> itemRequests) {
         List<ItemRequestDto> requestDtoList = new ArrayList<>();
-        for (ItemRequest request : itemRequests) {
-            List<ItemShort> items = itemStorage.findAllByRequestId(request.getId());
-            ItemRequestDto itemRequestDto = itemRequestMapper.toDto(request);
-            itemRequestDto.setItems(items.isEmpty() ? new ArrayList<>() : items);
-            requestDtoList.add(itemRequestDto);
+        if (!itemRequests.isEmpty()) {
+            List<Long> requestIds = itemRequests.stream()
+                    .map(ItemRequest::getId)
+                    .collect(Collectors.toList());
+            List<ItemShort> allItems = itemStorage.findAllByRequestIdIn(requestIds);
+
+            for (ItemRequest request : itemRequests) {
+                ItemRequestDto itemRequestDto = itemRequestMapper.toDto(request);
+                List<ItemShort> items = new ArrayList<>();
+                if (!allItems.isEmpty()) {
+                    items = allItems.stream()
+                            .filter(itemShort -> itemShort.getRequestId().equals(request.getId()))
+                            .collect(Collectors.toList());
+                }
+                itemRequestDto.setItems(items);
+                requestDtoList.add(itemRequestDto);
+            }
         }
         return requestDtoList;
     }

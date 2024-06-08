@@ -114,9 +114,10 @@ public class BookingServiceImpl implements BookingService {
                     .map(mapper::toDtoOut)
                     .getContent();
         } else if (state.equals(SearchState.CURRENT.name())) {
-            return bookingStorage.findAllByBookerAndStartLessThanEqualAndEndGreaterThanEqualOrderByStartDesc(booker,
+            return bookingStorage.findAllCurrentUserBookings(booker.getId(),
                             LocalDateTime.now(),
-                            LocalDateTime.now(), page)
+                            LocalDateTime.now(),
+                            page)
                     .map(mapper::toDtoOut)
                     .getContent();
         } else if (state.equals(SearchState.WAITING.name())) {
