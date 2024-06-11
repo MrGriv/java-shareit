@@ -8,4 +8,5 @@ public class ApiPathConstants {
     public static final String SEARCH_ITEMS_PATH = "search";
     public static final String OWNER_PATH = "owner";
     public static final String ADD_COMMENT_PATH = BY_ID_PATH + "/comment";
+    public static final String ALL_PATH = "all";
 }

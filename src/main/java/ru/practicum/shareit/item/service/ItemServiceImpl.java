@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
@@ -60,12 +61,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getAllUserItems(long userId) {
+    public List<ItemDto> getAllUserItems(long userId, Integer from, Integer size) {
         User owner = userStorage.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User: Пользователь с id=" + userId + " не найден"));
-        return itemStorage.findAllByOwnerIdOrderById(owner).stream()
+        PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
+        return itemStorage.findAllByOwnerIdOrderById(owner, page)
                 .map((Item item) -> addBookingsAndComments(item, userId))
-                .collect(Collectors.toList());
+                .getContent();
     }
 
     private ItemDto addComments(Item item) {
@@ -73,11 +75,7 @@ public class ItemServiceImpl implements ItemService {
                 .map(commentMapper::toDto)
                 .collect(Collectors.toList());
         ItemDto itemDto = mapper.toDto(item);
-        if (!itemComments.isEmpty()) {
-            itemDto.setComments(itemComments);
-        } else {
-            itemDto.setComments(new ArrayList<>());
-        }
+        itemDto.setComments(itemComments.isEmpty() ? new ArrayList<>() : itemComments);
         return itemDto;
     }
 
@@ -103,12 +101,14 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> searchItemsByNameOrDescription(String text) {
+    public List<ItemDto> searchItemsByNameOrDescription(String text, Integer from, Integer size) {
         if (text.isEmpty()) {
             return new ArrayList<>();
         }
-        List<Item> items = itemStorage.search(text);
-        return items.stream().map(mapper::toDto).collect(Collectors.toList());
+        PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
+        return itemStorage.search(text, page)
+                .map(mapper::toDto)
+                .getContent();
     }
 
     @Override

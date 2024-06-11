@@ -29,4 +29,7 @@ public class Item {
     @ManyToOne
     @JoinColumn(name = "owner_id")
     private User ownerId;
+
+    @Column(name = "request_id")
+    private Long requestId;
 }

@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDtoIn;
@@ -20,7 +21,6 @@ import ru.practicum.shareit.user.storage.UserDbStorage;
 import javax.validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +40,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NotFoundException("Item: Вещь с id=" + bookingDtoIn.getItemId() +
                         " не найдена в списке всех вещей"));
         if (item.getOwnerId().getId() == userId) {
-            throw new NotFoundException("Booking: Владелец не может бронировать своб вещь");
+            throw new NotFoundException("Booking: Владелец не может бронировать свою вещь");
         }
         if (!item.getAvailable()) {
             throw new ValidationException("Item: Вещь недоступна для бронирования");
@@ -95,80 +95,79 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDtoOut> getAllUserBookings(long userId, String state) {
+    public List<BookingDtoOut> getAllUserBookings(long userId, String state, Integer from, Integer size) {
         User booker = userStorage.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User: Пользователь с id=" + userId + " не найден"));////////////////////
+                .orElseThrow(() -> new NotFoundException("User: Пользователь с id=" + userId + " не найден"));
+        PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
         if (state.equals(SearchState.ALL.name())) {
-            return bookingStorage.findAllByBookerOrderByStartDesc(booker).stream()
+            return bookingStorage.findAllByBookerOrderByStartDesc(booker, page)
                     .map(mapper::toDtoOut)
-                    .collect(Collectors.toList());
+                    .getContent();
         } else if (state.equals(SearchState.FUTURE.name())) {
             return bookingStorage.findAllByBookerAndStartGreaterThanOrderByStartDesc(booker,
-                            LocalDateTime.now()).stream()
+                            LocalDateTime.now(), page)
                     .map(mapper::toDtoOut)
-                    .collect(Collectors.toList());
+                    .getContent();
         } else if (state.equals(SearchState.PAST.name())) {
             return bookingStorage.findAllByBookerAndEndLessThanOrderByStartDesc(booker,
-                            LocalDateTime.now()).stream()
+                            LocalDateTime.now(), page)
                     .map(mapper::toDtoOut)
-                    .collect(Collectors.toList());
+                    .getContent();
         } else if (state.equals(SearchState.CURRENT.name())) {
-            return bookingStorage.findAllByBookerAndStartLessThanEqualAndEndGreaterThanEqualOrderByStartDesc(booker,
+            return bookingStorage.findAllCurrentUserBookings(booker.getId(),
                             LocalDateTime.now(),
-                            LocalDateTime.now()).stream()
+                            LocalDateTime.now(),
+                            page)
                     .map(mapper::toDtoOut)
-                    .collect(Collectors.toList());
+                    .getContent();
         } else if (state.equals(SearchState.WAITING.name())) {
-            return bookingStorage.findAllByBookerAndStatusOrderByStartDesc(booker, BookingStatus.WAITING)
-                    .stream()
+            return bookingStorage.findAllByBookerAndStatusOrderByStartDesc(booker, BookingStatus.WAITING, page)
                     .map(mapper::toDtoOut)
-                    .collect(Collectors.toList());
+                    .getContent();
         } else if (state.equals(SearchState.REJECTED.name())) {
-            return bookingStorage.findAllByBookerAndStatusOrderByStartDesc(booker, BookingStatus.REJECTED)
-                    .stream()
+            return bookingStorage.findAllByBookerAndStatusOrderByStartDesc(booker, BookingStatus.REJECTED, page)
                     .map(mapper::toDtoOut)
-                    .collect(Collectors.toList());
+                    .getContent();
         }
         throw new BadRequestException("Unknown state: UNSUPPORTED_STATUS");
     }
 
     @Override
-    public List<BookingDtoOut> getAllOwnerBookings(long userId, String state) {
+    public List<BookingDtoOut> getAllOwnerBookings(long userId, String state, Integer from, Integer size) {
         User owner = userStorage.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User: Пользователь с id=" + userId + " не найден"));
-        if (itemStorage.findAllByOwnerIdOrderById(owner).isEmpty()) {
+        PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
+        if (itemStorage.findAllByOwnerIdOrderById(owner, PageRequest.of(0, 100)).isEmpty()) {
             throw new NotFoundException("Item: Пользователь не является владельцем какой либо вещи");
         }
         if (state.equals(SearchState.ALL.name())) {
-            return bookingStorage.findAllOwnerBookings(owner.getId()).stream()
+            return bookingStorage.findAllOwnerBookings(owner.getId(), page)
                     .map(mapper::toDtoOut)
-                    .collect(Collectors.toList());
+                    .getContent();
         } else if (state.equals(SearchState.FUTURE.name())) {
             return bookingStorage.findAllOwnerFutureBookings(owner.getId(),
-                            LocalDateTime.now()).stream()
+                            LocalDateTime.now(), page)
                     .map(mapper::toDtoOut)
-                    .collect(Collectors.toList());
+                    .getContent();
         } else if (state.equals(SearchState.PAST.name())) {
             return bookingStorage.findAllOwnerPastBookings(owner.getId(),
-                            LocalDateTime.now()).stream()
+                            LocalDateTime.now(), page)
                     .map(mapper::toDtoOut)
-                    .collect(Collectors.toList());
+                    .getContent();
         } else if (state.equals(SearchState.CURRENT.name())) {
             return bookingStorage.findAllOwnerCurrentBookings(owner.getId(),
                             LocalDateTime.now(),
-                            LocalDateTime.now()).stream()
+                            LocalDateTime.now(), page)
                     .map(mapper::toDtoOut)
-                    .collect(Collectors.toList());
+                    .getContent();
         } else if (state.equals(SearchState.WAITING.name())) {
-            return bookingStorage.findAllOwnerBookingsByStatus(owner.getId(), BookingStatus.WAITING)
-                    .stream()
+            return bookingStorage.findAllOwnerBookingsByStatus(owner.getId(), BookingStatus.WAITING, page)
                     .map(mapper::toDtoOut)
-                    .collect(Collectors.toList());
+                    .getContent();
         } else if (state.equals(SearchState.REJECTED.name())) {
-            return bookingStorage.findAllOwnerBookingsByStatus(owner.getId(), BookingStatus.REJECTED)
-                    .stream()
+            return bookingStorage.findAllOwnerBookingsByStatus(owner.getId(), BookingStatus.REJECTED, page)
                     .map(mapper::toDtoOut)
-                    .collect(Collectors.toList());
+                    .getContent();
         }
         throw new BadRequestException("Unknown state: UNSUPPORTED_STATUS");
     }
