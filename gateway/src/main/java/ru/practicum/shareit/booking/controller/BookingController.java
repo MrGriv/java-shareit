@@ -6,6 +6,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
@@ -48,6 +49,15 @@ public class BookingController {
 	public ResponseEntity<Object> add(@RequestHeader("X-Sharer-User-Id") long userId,
 			@RequestBody @Valid BookItemRequestDto requestDto) {
 		log.info("Creating booking {}, userId={}", requestDto, userId);
+		if (requestDto.getStart().isAfter(requestDto.getEnd())) {
+			throw new ValidationException("Booking: Дата начала не может быть позже даты конца бронирования");
+		}
+		if (requestDto.getEnd().isBefore(requestDto.getStart())) {
+			throw new ValidationException("Booking: Дата окончания не может быть раньше даты начала бронирования");
+		}
+		if (requestDto.getEnd().equals(requestDto.getStart())) {
+			throw new ValidationException("Booking: Даты не могут совпадать");
+		}
 		return bookingClient.add(userId, requestDto);
 	}
 

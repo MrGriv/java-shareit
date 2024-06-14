@@ -239,36 +239,6 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void searchItemsByNameOrDescriptionShouldReturnEmptyList() {
-        User user = new User(null, "Ivan", "iv@mail.ru");
-        em.persist(user);
-        em.flush();
-
-        TypedQuery<User> userQuery = em.createQuery("select u from User as u where u.name = :name", User.class);
-
-        user.setId(userQuery.setParameter("name", user.getName()).getSingleResult().getId());
-        Item item = new Item(null,
-                "rubanok",
-                "cool",
-                true,
-                user,
-                null);
-        Item item1 = new Item(null,
-                "УШМ",
-                "niceRUB",
-                true,
-                user,
-                null);
-        em.persist(item);
-        em.persist(item1);
-        em.flush();
-
-        List<ItemDto> targetItems = itemService.searchItemsByNameOrDescription("", 0, 20);
-
-        assertThat(targetItems, hasSize(0));
-    }
-
-    @Test
     void update() {
         User user = new User(null, "Ivan", "iv@mail.ru");
         em.persist(user);

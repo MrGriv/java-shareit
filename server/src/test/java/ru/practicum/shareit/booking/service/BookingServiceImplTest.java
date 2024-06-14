@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.practicum.shareit.booking.dto.BookingDtoIn;
 import ru.practicum.shareit.booking.dto.BookingDtoOut;
-import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.exception.BadRequestException;
@@ -17,7 +16,6 @@ import ru.practicum.shareit.user.model.User;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
-import javax.validation.ValidationException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,9 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
         webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class BookingServiceImplTest {
-    @Autowired
-    private BookingMapper bookingMapper;
-
     @Autowired
     private BookingService bookingService;
     private final EntityManager em;
@@ -142,46 +137,12 @@ class BookingServiceImplTest {
                 itemQuery.setParameter("name", item.getName()).getSingleResult().getId(),
                 null, null);
 
-        ValidationException exception = assertThrows(ValidationException.class, () ->
+        BadRequestException exception = assertThrows(BadRequestException.class, () ->
                 bookingService.add(
                         userQuery.setParameter("name", user.getName()).getSingleResult().getId(),
                         bookingDtoIn));
 
         assertEquals("Item: Вещь недоступна для бронирования", exception.getMessage());
-    }
-
-    @Test
-    void addThrowSameDateException() {
-        User owner = new User(null, "Ivan", "iv@mail.ru");
-        User user = new User(null, "Eva", "eva@mail.ru");
-
-        em.persist(owner);
-        em.persist(user);
-        em.flush();
-
-        TypedQuery<User> userQuery = em.createQuery("select u from User as u where u.name = :name", User.class);
-
-        Item item = new Item(null, "черенок", "отличный черенок", true,
-                userQuery.setParameter("name", owner.getName()).getSingleResult(),
-                null);
-
-        em.persist(item);
-        em.flush();
-
-        TypedQuery<Item> itemQuery = em.createQuery("select i from Item as i where i.name = :name", Item.class);
-
-        BookingDtoIn bookingDtoIn = new BookingDtoIn(null,
-                LocalDateTime.of(2200, 10, 20, 20, 20),
-                LocalDateTime.of(2200, 10, 20, 20, 20),
-                itemQuery.setParameter("name", item.getName()).getSingleResult().getId(),
-                null, null);
-
-        ValidationException exception = assertThrows(ValidationException.class, () ->
-                bookingService.add(
-                        userQuery.setParameter("name", user.getName()).getSingleResult().getId(),
-                        bookingDtoIn));
-
-        assertEquals("Booking: Даты не могут совпадать", exception.getMessage());
     }
 
     @Test

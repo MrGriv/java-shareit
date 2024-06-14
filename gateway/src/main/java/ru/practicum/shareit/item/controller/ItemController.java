@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.ItemClient;
 import ru.practicum.shareit.item.comment.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.exception.EmptyList;
 import ru.practicum.shareit.util.ApiPathConstants;
 
 import javax.validation.Valid;
@@ -47,6 +48,9 @@ public class ItemController {
     public ResponseEntity<Object> searchItemsByNameOrDescription(@RequestParam String text,
                                                         @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
                                                         @Positive @RequestParam(defaultValue = "20") Integer size) {
+        if (text.isEmpty()) {
+            throw new EmptyList();
+        }
         return itemClient.searchItemsByNameOrDescription(text, from, size);
     }
 

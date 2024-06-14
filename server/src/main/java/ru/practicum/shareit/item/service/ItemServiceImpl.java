@@ -102,9 +102,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> searchItemsByNameOrDescription(String text, Integer from, Integer size) {
-        if (text.isEmpty()) {
-            return new ArrayList<>();
-        }
         PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
         return itemStorage.search(text, page)
                 .map(mapper::toDto)

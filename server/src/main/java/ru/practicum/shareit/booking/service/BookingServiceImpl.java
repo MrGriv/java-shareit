@@ -18,7 +18,6 @@ import ru.practicum.shareit.item.storage.ItemDbStorage;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserDbStorage;
 
-import javax.validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -43,16 +42,7 @@ public class BookingServiceImpl implements BookingService {
             throw new NotFoundException("Booking: Владелец не может бронировать свою вещь");
         }
         if (!item.getAvailable()) {
-            throw new ValidationException("Item: Вещь недоступна для бронирования");
-        }
-        if (bookingDtoIn.getStart().isAfter(bookingDtoIn.getEnd())) {
-            throw new ValidationException("Booking: Дата начала не может быть позже даты конца бронирования");
-        }
-        if (bookingDtoIn.getEnd().isBefore(bookingDtoIn.getStart())) {
-            throw new ValidationException("Booking: Дата окончания не может быть раньше даты начала бронирования");
-        }
-        if (bookingDtoIn.getEnd().equals(bookingDtoIn.getStart())) {
-            throw new ValidationException("Booking: Даты не могут совпадать");
+            throw new BadRequestException("Item: Вещь недоступна для бронирования");
         }
         Booking booking = mapper.toEntity(bookingDtoIn);
         booking.setBooker(booker);
